@@ -39,7 +39,7 @@ public class TalkManagementService {
         talk.setOrganizedBy(userDetailsService.getActiveUser());
     }
 
-    public void assignSpeakers(Talk talk, Set<String> emailIds) {
+    public void assignSpeakers(Talk talk, List<String> emailIds) {
         Set<User> speakers = userDetailsService.getCollectionOfRegisteredUsers(emailIds);
         talk.setSpeakers(speakers);
     }
