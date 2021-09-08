@@ -1,7 +1,7 @@
 package com.hobby.service;
 
 import com.hobby.daos.TalkRepository;
-import com.hobby.dtos.NewTalkRequestDto;
+import com.hobby.dtos.TalkRequestDto;
 import com.hobby.dtos.TalkCreationResponseDto;
 import com.hobby.enuns.TalkStatus;
 import com.hobby.models.Talk;
@@ -18,8 +18,8 @@ public class TalkManagementService {
     private final TalkRepository talkDao;
 
     //todo make this  throw checked exception
-    public TalkCreationResponseDto createNewTalk(NewTalkRequestDto newTalkRequestDto) {
-        Talk.TalkBuilder builder = getTalkBuilder(newTalkRequestDto);
+    public TalkCreationResponseDto createNewTalk(TalkRequestDto talkRequestDto) {
+        Talk.TalkBuilder builder = getTalkBuilder(talkRequestDto);
         //assignSpeakers(builder, newTalkRequestDto.getSpeakerEmailIds())
         //assignOrganizer(builder);
         Talk newTalk = builder.build();
@@ -27,16 +27,16 @@ public class TalkManagementService {
         return TalkCreationResponseDto.builder().talkId(newTalk.getTalkId()).build();
     }
 
-    private Talk.TalkBuilder getTalkBuilder(NewTalkRequestDto newTalkRequestDto) {
+    private Talk.TalkBuilder getTalkBuilder(TalkRequestDto talkRequestDto) {
         return Talk.builder()
-                .topic(newTalkRequestDto.getTopic())
-                .description(newTalkRequestDto.getDescription())
-                .startTime(newTalkRequestDto.getStartTime())
-                .endTime(newTalkRequestDto.getEndTime())
+                .topic(talkRequestDto.getTopic())
+                .description(talkRequestDto.getDescription())
+                .startTime(talkRequestDto.getStartTime())
+                .endTime(talkRequestDto.getEndTime())
                 .status(TalkStatus.CREATED);
     }
 
-    public TalkCreationResponseDto updateTalk(long talkId, NewTalkRequestDto updatedTalkRequestDto) {
+    public TalkCreationResponseDto updateTalk(long talkId, TalkRequestDto updatedTalkRequestDto) {
         Optional<Talk> talkById = talkDao.findById(talkId);
         Talk talk = talkById.orElseThrow(() -> new RuntimeException("Could not find talk with talkd id" + talkId));
         if(Strings.isNotBlank(updatedTalkRequestDto.getTopic())) {

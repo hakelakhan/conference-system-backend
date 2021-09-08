@@ -22,7 +22,7 @@ class AuthController {
     @PostMapping(value="/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest registerRequest) {
         authService.register(registerRequest);
-        return new ResponseEntity<>("{\"message\": \"User Registration Successful\"}", OK);
+        return new ResponseEntity<>("{\"message\": \"User Registration Successful. Kindly check activation email and verify email address\"}", OK);
     }
 
     @PostMapping("/login")

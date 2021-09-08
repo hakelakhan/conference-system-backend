@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
-public class NewTalkRequestDto {
+public class TalkRequestDto {
     private String topic;
     private String description;
     private LocalDateTime startTime;

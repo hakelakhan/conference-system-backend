@@ -1,17 +1,11 @@
 package com.hobby.models;
 
-import com.hobby.dtos.NewTalkRequestDto;
 import com.hobby.enuns.TalkStatus;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import java.time.LocalDate;
+import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -35,5 +29,6 @@ public class Talk {
 
     private String presentationFileName;
 
+    @OneToOne
     private User organizedBy;
 }
