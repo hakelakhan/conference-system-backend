@@ -15,9 +15,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -39,9 +38,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
 
-    public Optional<User> getActiveUser() {
+    public User getActiveUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User)authentication.getPrincipal();
-        return usersDao.findByEmail(principal.getUsername());
+        return usersDao.findByEmail(principal.getUsername()).orElseThrow(() -> new IllegalStateException("Invalid state. Authentication principal is tempered"));
+    }
+    public Set<User> getCollectionOfRegisteredUsers(Set<String> emailIds) {
+        return usersDao.findAllByEmail(emailIds).orElseThrow(() -> new IllegalArgumentException("Could not find registered users with provided email id(s)")).stream().collect(Collectors.toSet());
     }
 }
