@@ -13,4 +13,5 @@ public class TalkRequestDto {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private List<String> speakerEmailIds;
+    private List<String> participantEmailIds;
 }

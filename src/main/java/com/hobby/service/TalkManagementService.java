@@ -1,20 +1,23 @@
 package com.hobby.service;
 
 import com.hobby.daos.TalkRepository;
+import com.hobby.dtos.TalkDetailsResponseDto;
 import com.hobby.dtos.TalkRequestDto;
 import com.hobby.dtos.TalkCreationResponseDto;
+import com.hobby.dtos.TalksDetails;
 import com.hobby.enuns.TalkStatus;
 import com.hobby.models.Talk;
 import com.hobby.models.User;
 import io.jsonwebtoken.lang.Collections;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +27,45 @@ public class TalkManagementService {
 
     private final UserDetailsServiceImpl userDetailsService;
 
+    public List<Talk> getAllTalksForASpeaker(String speakerEmailId) {
+        return new ArrayList<>();
+    }
+
+    public List<Talk> getAllTalksForAParticipant(String participantEmailId) {
+        return new ArrayList<>();
+    }
+
+    public TalkDetailsResponseDto getTalk(long talkId) {
+        TalkDetailsResponseDto response;
+        Talk talk = talkDao.findById(talkId).orElse(null);
+        return talkToDto(talk);
+    }
+
+    public TalksDetails getAllTalks() {
+        List<TalkDetailsResponseDto> detailsAboutTalk = new ArrayList<>();
+
+        List<Talk> allTalks = talkDao.findAll();
+        allTalks.forEach(talk -> detailsAboutTalk.add(talkToDto(talk)));
+        return TalksDetails.builder().talks(detailsAboutTalk).build();
+    }
+
+    private TalkDetailsResponseDto talkToDto(Talk talk) {
+        if(talk == null)
+            return null;
+        return TalkDetailsResponseDto.builder()
+                .talkId(talk.getTalkId())
+                .topic(talk.getTopic())
+                .description(talk.getDescription())
+                .startTime(talk.getStartTime())
+                .endTime(talk.getEndTime())
+                .status(talk.getStatus().toString())
+                .speakers(talk.getSpeakers().stream().map(User::getEmail).collect(Collectors.toSet()))
+                .participants(talk.getParticipants().stream().map(User::getEmail).collect(Collectors.toSet()))
+                .organizedBy(talk.getOrganizedBy().getEmail())
+                .presentationFileName(talk.getPresentationFileName())
+                .build();
+    }
+
     //todo make this  throw checked exception
     public TalkCreationResponseDto createNewTalk(TalkRequestDto talkRequestDto) {
         Talk.TalkBuilder builder = getTalkBuilder(talkRequestDto);
@@ -31,17 +73,63 @@ public class TalkManagementService {
         Talk newTalk = builder.build();
         assignOrganizer(newTalk);
         assignSpeakers(newTalk, talkRequestDto.getSpeakerEmailIds());
+        assignParticipants(newTalk, talkRequestDto.getParticipantEmailIds());
         talkDao.save(newTalk);
         return TalkCreationResponseDto.builder().talkId(newTalk.getTalkId()).build();
     }
 
     private void assignOrganizer(Talk talk) {
         talk.setOrganizedBy(userDetailsService.getActiveUser());
+        talkDao.save(talk);
+    }
+
+    public void assignParticipants(Talk talk, List<String> emailIds) {
+        Set<User> participants = userDetailsService.getUsersRegisteredWithEmails(emailIds);
+        talk.setParticipants(participants);
+        talkDao.save(talk);
     }
 
     public void assignSpeakers(Talk talk, List<String> emailIds) {
-        Set<User> speakers = userDetailsService.getCollectionOfRegisteredUsers(emailIds);
+        Set<User> speakers = userDetailsService.getUsersRegisteredWithEmails(emailIds);
         talk.setSpeakers(speakers);
+        talkDao.save(talk);
+    }
+
+    public void addSpeakerToTalk(long talkId, String emailId) {
+        Talk talk = talkDao.findById(talkId).orElseThrow(() -> new IllegalArgumentException("Did not found a talk with talkId " + talkId ));
+        addSpeakerToTalk(talk, emailId);
+    }
+
+    public void addSpeakerToTalk(Talk talk, String emailId) {
+        User speaker = getUserFromEmailId(emailId);
+        talk.getSpeakers().add(speaker);
+        talkDao.save(talk);
+    }
+
+    public void removeSpeakerFromTalk(Talk talk, String emailId) {
+        User speaker = getUserFromEmailId(emailId);
+        talk.getSpeakers().remove(speaker);
+        talkDao.save(talk);
+    }
+
+    public void addParticipantToTalk(long talkId, String emailId) {
+        Talk talk = talkDao.findById(talkId).orElseThrow(() -> new IllegalArgumentException("Did not found a talk with talkId " + talkId ));
+        addParticipantToTalk(talk, emailId);
+    }
+    public void addParticipantToTalk(Talk talk, String emailId) {
+        User participant = getUserFromEmailId(emailId);
+        talk.getParticipants().add(participant);
+        talkDao.save(talk);
+    }
+
+    public void removeParticipantFromTalk(Talk talk, String emailId) {
+        User participant = getUserFromEmailId(emailId);
+        talk.getParticipants().remove(participant);
+        talkDao.save(talk);
+    }
+
+    public User getUserFromEmailId(String emailId) {
+        return userDetailsService.getUserRegisteredWithEmail(emailId);
     }
 
     private Talk.TalkBuilder getTalkBuilder(TalkRequestDto talkRequestDto) {
@@ -70,6 +158,9 @@ public class TalkManagementService {
         }
         if(!Collections.isEmpty(updatedTalkRequestDto.getSpeakerEmailIds())) {
             assignSpeakers(talk, updatedTalkRequestDto.getSpeakerEmailIds());
+        }
+        if(!Collections.isEmpty(updatedTalkRequestDto.getParticipantEmailIds())) {
+            assignParticipants(talk, updatedTalkRequestDto.getParticipantEmailIds());
         }
         assignOrganizer(talk);
         talkDao.save(talk);

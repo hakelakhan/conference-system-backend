@@ -43,7 +43,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User)authentication.getPrincipal();
         return usersDao.findByEmail(principal.getUsername()).orElseThrow(() -> new IllegalStateException("Invalid state. Authentication principal is tempered"));
     }
-    public Set<User> getCollectionOfRegisteredUsers(List<String> emailIds) {
+
+    public User getUserRegisteredWithEmail(String emailId) {
+        return usersDao.findByEmail(emailId).orElseThrow(() -> new IllegalArgumentException("Email id provided does not belong to registered user"));
+    }
+
+    public Set<User> getUsersRegisteredWithEmails(List<String> emailIds) {
         return usersDao.findAllByEmailIn(emailIds).stream().collect(Collectors.toSet());
     }
 }
