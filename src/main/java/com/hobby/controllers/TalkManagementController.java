@@ -32,6 +32,16 @@ public class TalkManagementController {
         return details;
     }
 
+    @GetMapping("/talks/byspeaker")
+    public TalksDetails getTalkForSpeaker(@RequestParam("speaker-email") String email) {
+        return talkManagementService.getAllTalksForASpeaker(email);
+    }
+
+    @GetMapping("/talks/byparticipant")
+    public TalksDetails getTalkForParticipant(@RequestParam("participant-email") String email) {
+        return talkManagementService.getAllTalksForAParticipant(email);
+    }
+
     @PostMapping("/update-talk/{talkId}")
     public TalkCreationResponseDto updateTalk(@PathVariable("talkId") long talkId, @RequestBody TalkRequestDto updatedTalkRequestDto) {
         return talkManagementService.updateTalk(talkId, updatedTalkRequestDto);

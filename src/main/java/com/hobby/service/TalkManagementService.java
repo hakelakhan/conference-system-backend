@@ -27,12 +27,24 @@ public class TalkManagementService {
 
     private final UserDetailsServiceImpl userDetailsService;
 
-    public List<Talk> getAllTalksForASpeaker(String speakerEmailId) {
-        return new ArrayList<>();
+    public TalksDetails getAllTalksForASpeaker(String speakerEmailId) {
+        User speaker = getUserFromEmailId(speakerEmailId);
+        List<Talk> allBySpeakers = talkDao.findAllBySpeakers(speaker);
+
+        List<TalkDetailsResponseDto> detailsAboutTalk = new ArrayList<>();
+
+        allBySpeakers.forEach(talk -> detailsAboutTalk.add(talkToDto(talk)));
+        return TalksDetails.builder().talks(detailsAboutTalk).build();
     }
 
-    public List<Talk> getAllTalksForAParticipant(String participantEmailId) {
-        return new ArrayList<>();
+    public TalksDetails getAllTalksForAParticipant(String participantEmailId) {
+        User speaker = getUserFromEmailId(participantEmailId);
+        List<Talk> allByParticipants = talkDao.findAllByParticipants(speaker);
+
+        List<TalkDetailsResponseDto> detailsAboutTalk = new ArrayList<>();
+
+        allByParticipants.forEach(talk -> detailsAboutTalk.add(talkToDto(talk)));
+        return TalksDetails.builder().talks(detailsAboutTalk).build();
     }
 
     public TalkDetailsResponseDto getTalk(long talkId) {
