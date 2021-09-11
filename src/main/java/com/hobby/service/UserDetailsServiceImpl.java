@@ -44,10 +44,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return usersDao.findByEmail(principal.getUsername()).orElseThrow(() -> new IllegalStateException("Invalid state. Authentication principal is tempered"));
     }
 
+    @Transactional
     public User getUserRegisteredWithEmail(String emailId) {
         return usersDao.findByEmail(emailId).orElseThrow(() -> new IllegalArgumentException("Email id provided does not belong to registered user"));
     }
 
+    @Transactional
     public Set<User> getUsersRegisteredWithEmails(List<String> emailIds) {
         return usersDao.findAllByEmailIn(emailIds).stream().collect(Collectors.toSet());
     }
